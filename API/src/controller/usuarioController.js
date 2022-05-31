@@ -3,21 +3,26 @@ import { login } from '../repository/usuarioRespositoy.js'
 import { Router } from 'express';
 const server = Router();
 
-server.post('/usuario/login', async (req,resp) => {
+server.post('/usuario/login', async (req, resp) => {
     try {
         const { email, senha } = req.body;
 
-        const resposta = await login(email,senha);
+        const resposta = await login(email, senha);
         if (!resposta) {
             throw new Error('credenciais invalidas');
         }
         resp.send(resposta)
 
-    }  catch (err) {
+    } catch (err) {
         resp.status(401).send({
             erro: err.message
         });
     }
 })
+
+
+
+
+
 
 export default server;
