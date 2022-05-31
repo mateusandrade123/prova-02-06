@@ -8,5 +8,3 @@ export async function inserirFilmes(filme) {
     const [resposta] = await con.query(comando, [filme.usuario, filme.nome, filme.sinopse, filme.avaliacao, filme.lancamento, filme.disponivel])
 
 }
-
-export async function Listartodos
