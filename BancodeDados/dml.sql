@@ -2,7 +2,7 @@ USE catalogoFilmesDB;
 
 
 
--- carga inicial usuÃ¡rio admin
+-- carga inicial usuário admin
 INSERT INTO tb_usuario (nm_usuario, ds_email, ds_senha)
      VALUES ('admin', 'admin@admin.com.br', '1234');
 
@@ -85,4 +85,3 @@ SELECT id_filme		id,
        img_filme         capa
   FROM tb_filme
  WHERE id_filme			= 1;
-  

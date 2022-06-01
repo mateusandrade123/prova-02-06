@@ -1,105 +1,183 @@
-import { buscarPorId, buscarPorNome, inserirFilmes } from "../repository/filmeRepository.js";
-import { Router } from 'express';
+import { alterarFilme, alterarImagem, buscarPorId, buscarPorNome, inserirFilme, listarTodosFilmes, removerFilme } from '../repository/filmeRepository.js'
+import { Router } from 'express'
+
+import multer from 'multer'
 
 const server = Router();
+const upload = multer({ dest: 'storage/capasFilmes' })
 
 
-
-server.get('/filme/busca', async (req, resp) => {
-
+server.post('/filme', async (req, resp) =>{
     try {
+        const filme = req.body;
 
-        const { nome } = req.query;
+
+        if (!filme.nome) {
+            throw new Error('Nome do filme é obrigatorio!');
+        }
+
+        if (!filme.sinopse) {
+            throw new Error('Sinopse do filme é obrigatorio!');
+        }
+
+        if(filme.avaliacao == undefined || filme.avaliacao < 0){
+          throw new Error ('Avaliação do filme é obrigatorio!')
+        }
+
+        if (!filme.lancamento) {
+            throw new Error('Lancamento do filme é obrigatorio!');
+        }
+
+        if (filme.disponivel == undefined) {
+            throw new Error('Campo Disponivel é obrigatorio!');
+        }
+
+        if (!filme.usuario) {
+            throw new Error('Usuário não logado!');
+        }
+        
+
+       const filmeInserir = await inserirFilme(filme);
+
+       resp.send(filmeInserir)
+    } 
+    catch (err) {
+        resp.status(400).send({
+            erro:err.message
+        })
+    }
+})
+
+server.put('/filmes/:id/capa', upload.single('capa') , async (req, resp) => {
+    try {
+        const { id } = req.params;
+        const imagem = req.file.path;
+
+        const resposta = await alterarImagem(imagem, id);
+        if (resposta != 1) {
+            throw new Error('SÓ ERRA SEU MERDA')
+        }
+
+        resp.status(204).send();
+    } catch (err) {
+        resp.status(400).send({
+            erro:err.message
+        })
+    }
+})
+
+server.get('/filmes', async (req, resp) => {
+    try {
+        const resposta = await listarTodosFilmes();
+        resp.send(resposta);
+
+    } 
+    catch (err) {
+        resp.status(400).send({
+            erro: err.message
+        })
+    }
+})
+
+server.get('/filmes/busca', async (req, resp) => {
+    try {
+        const {nome} = req.query ;
 
         const resposta = await buscarPorNome(nome);
+  
+        if (resposta.length == 0) {
+            throw new Error('vc tá maluco meu?')
+        }
 
-        if (resposta.length == 0)
-
-            resp.status(404).send([])
-
-        else
-
-            resp.send(resposta);
-
-    } catch (err) {
-
+        resp.send(resposta);
+    } 
+    catch (err) {
         resp.status(400).send({
-
-            erro: err.message
-
+            erro: err.message 
         })
-
     }
-
 })
 
-server.get('/filme/:id', async (req, resp) => {
-
+server.get('/filmes/:id', async (req, resp) => {
     try {
-
-        const id = Number(req.params.id);
+        const id = Number ( req.params.id );
 
         const resposta = await buscarPorId(id);
+  
+        if (!resposta) {
+            throw new Error('vc tá maluco meu?')
+        }
 
-        if (!resposta)
-
-            resp.status(404).send([])
-
-        else
-
-            resp.send(resposta);
-
-    } catch (err) {
-
+        resp.send(resposta);
+    } 
+    catch (err) {
         resp.status(400).send({
-
-            erro: err.message
-
+            erro: err.message 
         })
-
     }
-
 })
 
-
-server.post('/filme', async (req, resp) => {
-
+server.delete('/filmes/:id', async (req, resp) => {
     try {
+        const { id } =req.params;
 
-        const novoFilme = req.body;
+        const resposta = await removerFilme(id);
 
-        if (!novoFilme.nome)
+        if (resposta != 1) {
+            throw new Error ('ERRO SEU BURRÃO DO CACETE')
+        }
 
-            throw new Error('Nome do Filme é OBRIGATÓRIO!!');
+        resp.status(204).send();
+    } 
+    catch (err) {
+        resp.status(400).send({
+            erro: err.message 
+        })
+    }
+})
 
-        if (!novoFilme.sinopse)
+server.put('/filmes/:id', async (req,resp) => {
+    try {
+        const { id } = req.params;
+        const filme = req.body;
 
-            throw new Error('Sinopse do Filme é OBRIGATÓRIO!!');
+        if (!filme.nome) {
+            throw new Error('Nome do filme é obrigatorio!');
+        }
 
-        if (!novoFilme.avaliacao == undefined || novoFilme.avaliacao < 0)
+        if (!filme.sinopse) {
+            throw new Error('Sinopse do filme é obrigatorio!');
+        }
 
-            throw new Error('Avaliação do Filme é OBRIGATÓRIO!!');
+        if(filme.avaliacao == undefined || filme.avaliacao < 0){
+          throw new Error ('Avaliação do filme é obrigatorio!')
+        }
 
-        if (!novoFilme.lancamento)
+        if (!filme.lancamento) {
+            throw new Error('Lancamento do filme é obrigatorio!');
+        }
 
-            throw new Error('Lançamento do Filme é OBRIGATÓRIO!!');
+        if (filme.disponivel == undefined) {
+            throw new Error('Campo Disponivel é obrigatorio!');
+        }
 
-        if (!novoFilme.disponivel)
+        if (!filme.usuario) {
+            throw new Error('Usuário não logado!');
+        }
+        
 
-            throw new Error('Campo Disponíval é OBRIGATÓRIO!!');
-
-        if (!novoFilme.usuario)
-
-            throw new Error('Usuário não LOGADO!!');
-
-        const filmeInserido = await inserirFilmes(novoFilme);
-
-        resp.send(filmeInserido);
-
-    } catch (err) {
-        resp.send(400).send({
-
-            erro: err.message
+        const resposta = await alterarFilme(id, filme);
+        if (resposta != 1) {
+            throw new Error ('BURRO PARACE UMA MULA');
+            
+        }
+        else{
+            resp.status(205).send();
+        }
+    } 
+    catch (err) {
+        resp.status(400).send({
+            erro: err.message 
         })
     }
 })
